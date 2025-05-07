@@ -1,0 +1,7 @@
+services:
+  debian:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ~/Documents/projects/ft-ping:/ft-ping
