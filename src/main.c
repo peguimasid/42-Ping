@@ -16,7 +16,6 @@ int main() {
 
   printf("Raw socket created successfully! (fd = %d)\n", sockfd);
 
-  // Remember to close the socket when done
   close(sockfd);
   return EXIT_SUCCESS;
 }
