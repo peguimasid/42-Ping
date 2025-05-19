@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   char ipstr[INET_ADDRSTRLEN];
 
   if (argc != 2) {
-    printf("Usage: %s <hostname> or ipv4\n", argv[0]);
+    printf("Usage: ./ft_ping <hostname>\n");
     return EXIT_FAILURE;
   }
 
