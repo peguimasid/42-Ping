@@ -35,6 +35,12 @@ fclean: clean
 # Rebuild everything
 re:	fclean all
 
+# Run tests
+test: all
+	@./$(NAME)
+	@rm -f $(OBJS)
+	@rm -rf $(NAME)
+
 # Run in Linux environment using Docker
 linux: linux-clean
 	@docker compose -f docker/compose.yml run debian bash
