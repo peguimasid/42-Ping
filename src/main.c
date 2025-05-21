@@ -3,6 +3,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,8 +114,28 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  printf("Received a response from %s\n", argv[1]);
+  // Validate the ICMP response
+  struct iphdr *ip_header = (struct iphdr *)recvbuf;
+  int ip_header_len = ip_header->ihl * 4;
+  struct icmphdr *icmp_reply = (struct icmphdr *)(recvbuf + ip_header_len);
+
+  // Check if the ICMP reply is an echo reply and matches our request
+  bool is_echo_reply = icmp_reply->type == ICMP_ECHOREPLY;
+  bool is_matching_id = icmp_reply->un.echo.id == (getpid() & 0xFFFF);
+  bool is_matching_seq = icmp_reply->un.echo.sequence == seq_no;
+
+  if (is_echo_reply && is_matching_id && is_matching_seq) {
+    char from_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(from.sin_addr), from_ip, INET_ADDRSTRLEN);
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d\n", from_ip, seq_no, ip_header->ttl);
+  } else {
+    printf("Received an invalid response\n");
+    close(sockfd);
+    freeaddrinfo(res);
+    return EXIT_FAILURE;
+  }
 
   close(sockfd);
+  freeaddrinfo(res);
   return EXIT_SUCCESS;
 }
