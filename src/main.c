@@ -3,6 +3,7 @@
 #include <netdb.h>            // For network database operations like DNS resolution
 #include <netinet/in.h>       // Internet address family structures
 #include <netinet/ip_icmp.h>  // ICMP header definitions
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,11 +77,10 @@ int main(int argc, char **argv) {
   printf("PING %s (%s) 56(84) bytes of data.\n", argv[1], ipstr);
 
   // =============================================================================
-  // ICMP PACKET PREPARATION
+  // ICMP PACKET PREPARATION AND PING LOOP
   // =============================================================================
   char packet[PACKET_SIZE];                         // Buffer for our ICMP packet
   struct icmphdr *icmp = (struct icmphdr *)packet;  // Cast the buffer to ICMP header structure
-  unsigned short seq_no = 1;                        // Sequence number for this ping
 
   // Create a raw socket for sending ICMP packets
   // IPPROTO_ICMP specifies we're using the ICMP protocol
@@ -93,101 +93,96 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  // Fill in the ICMP header fields
-  bzero(packet, PACKET_SIZE);                      // Zero out the packet buffer
-  icmp->type = ICMP_ECHO;                          // 8 - Echo Request
-  icmp->code = 0;                                  // Code 0 for Echo Request
-  icmp->un.echo.id = getpid() & 0xFFFF;            // Use process ID as identifier (truncated to 16 bits)
-  icmp->un.echo.sequence = seq_no;                 // Sequence number
-  icmp->checksum = 0;                              // Zero out checksum before calculating
-  icmp->checksum = checksum(packet, PACKET_SIZE);  // Calculate and set the checksum
+  for (int i = 1; i < 4; i++) {
+    struct timeval start_time, end_time;
 
-  // =============================================================================
-  // SEND ICMP ECHO REQUEST
-  // =============================================================================
-  // Send the packet to the destination
-  ssize_t sent = sendto(sockfd, packet, PACKET_SIZE, 0, res->ai_addr, res->ai_addrlen);
+    gettimeofday(&start_time, NULL);
 
-  if (sent < 0) {
-    // If sending fails, report the error
-    perror("sendto");
-    close(sockfd);      // Clean up the socket
-    freeaddrinfo(res);  // Clean up the address info
-    return EXIT_FAILURE;
-  }
+    // Fill in the ICMP header fields
+    bzero(packet, PACKET_SIZE);                      // Zero out the packet buffer
+    icmp->type = ICMP_ECHO;                          // 8 - Echo Request
+    icmp->code = 0;                                  // Code 0 for Echo Request
+    icmp->un.echo.id = getpid() & 0xFFFF;            // Use process ID as identifier (truncated to 16 bits)
+    icmp->un.echo.sequence = i;                      // Sequence number
+    icmp->checksum = 0;                              // Zero out checksum before calculating
+    icmp->checksum = checksum(packet, PACKET_SIZE);  // Calculate and set the checksum
 
-  // =============================================================================
-  // WAIT FOR RESPONSE WITH TIMEOUT
-  // =============================================================================
-  // Set up for select() to implement a timeout
-  fd_set readfds;
-  struct timeval timeout = {1, 0};  // 1 second timeout
-  FD_ZERO(&readfds);                // Clear the set
-  FD_SET(sockfd, &readfds);         // Add our socket to the set
+    // Send the packet to the destination
+    ssize_t sent = sendto(sockfd, packet, PACKET_SIZE, 0, res->ai_addr, res->ai_addrlen);
 
-  // Wait for data to be available on the socket (with timeout)
-  int ready = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
+    if (sent < 0) {
+      // If sending fails, report the error
+      perror("sendto");
+      close(sockfd);      // Clean up the socket
+      freeaddrinfo(res);  // Clean up the address info
+      return EXIT_FAILURE;
+    }
 
-  if (ready == 0) {
-    // If select times out, no response was received within timeout period
-    printf("Request timeout for icmp_seq %d\n", seq_no);
-    close(sockfd);
-    freeaddrinfo(res);
-    return EXIT_FAILURE;
-  }
+    // Wait for response with timeout
+    fd_set readfds;
+    struct timeval timeout = {1, 0};  // 1 second timeout
+    FD_ZERO(&readfds);                // Clear the set
+    FD_SET(sockfd, &readfds);         // Add our socket to the set
 
-  if (ready < 0) {
-    // If select fails, report the error
-    perror("select");
-    close(sockfd);
-    freeaddrinfo(res);
-    return EXIT_FAILURE;
-  }
+    // Wait for data to be available on the socket (with timeout)
+    int ready = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
 
-  // =============================================================================
-  // RECEIVE AND VALIDATE RESPONSE
-  // =============================================================================
-  // Prepare to receive data
-  char recvbuf[1024];       // Buffer for the received packet (IP header + ICMP)
-  struct sockaddr_in from;  // Address of the sender
-  socklen_t fromlen = sizeof(from);
+    if (ready == 0) {
+      printf("Request timeout for icmp_seq %d\n", i);
+      continue;  // Try next ping instead of exiting
+    }
 
-  // Receive the packet
-  ssize_t recvd = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&from, &fromlen);
+    if (ready < 0) {
+      // If select fails, report the error
+      perror("select");
+      close(sockfd);
+      freeaddrinfo(res);
+      return EXIT_FAILURE;
+    }
 
-  if (recvd <= 0) {
-    // If receiving fails, report the error
-    perror("recvfrom");
-    close(sockfd);
-    freeaddrinfo(res);
-    return EXIT_FAILURE;
-  }
+    // Receive and validate response
+    char recvbuf[1024];       // Buffer for the received packet (IP header + ICMP)
+    struct sockaddr_in from;  // Address of the sender
+    socklen_t fromlen = sizeof(from);
 
-  // The received packet includes the IP header, so we need to skip over it
-  // to access the ICMP header
-  struct iphdr *ip_header = (struct iphdr *)recvbuf;
-  int ip_header_len = ip_header->ihl * 4;  // IP header length in bytes (ihl gives it in 4-byte units)
+    // Receive the packet
+    ssize_t recvd = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&from, &fromlen);
 
-  // Get a pointer to the ICMP part of the received packet
-  struct icmphdr *icmp_reply = (struct icmphdr *)(recvbuf + ip_header_len);
+    if (recvd <= 0) {
+      // If receiving fails, report the error
+      perror("recvfrom");
+      continue;  // Try next ping instead of exiting
+    }
 
-  // Validate the ICMP reply:
-  // 1. Must be an ECHO REPLY (type 0)
-  // 2. Must have our process ID as the identifier
-  // 3. Must have the same sequence number we sent
-  bool is_echo_reply = icmp_reply->type == ICMP_ECHOREPLY;
-  bool is_matching_id = icmp_reply->un.echo.id == (getpid() & 0xFFFF);
-  bool is_matching_seq = icmp_reply->un.echo.sequence == seq_no;
+    gettimeofday(&end_time, NULL);
+    double rtt = (end_time.tv_sec - start_time.tv_sec) * 1000.0 + (end_time.tv_usec - start_time.tv_usec) / 1000.0;
 
-  if (is_echo_reply && is_matching_id && is_matching_seq) {
-    char from_ip[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &(from.sin_addr), from_ip, INET_ADDRSTRLEN);
-    printf("64 bytes from %s: icmp_seq=%d ttl=%d\n", from_ip, seq_no, ip_header->ttl);
-  } else {
-    printf("Received an invalid response\n");
-    close(sockfd);
-    freeaddrinfo(res);
-    return EXIT_FAILURE;
+    // Process the received packet
+    struct iphdr *ip_header = (struct iphdr *)recvbuf;
+    int ip_header_len = ip_header->ihl * 4;  // IP header length in bytes (ihl gives it in 4-byte units)
+
+    // Get a pointer to the ICMP part of the received packet
+    struct icmphdr *icmp_reply = (struct icmphdr *)(recvbuf + ip_header_len);
+
+    // Validate the ICMP reply:
+    // 1. Must be an ECHO REPLY (type 0)
+    // 2. Must have our process ID as the identifier
+    // 3. Must have the same sequence number we sent
+    bool is_echo_reply = icmp_reply->type == ICMP_ECHOREPLY;
+    bool is_matching_id = icmp_reply->un.echo.id == (getpid() & 0xFFFF);
+    bool is_matching_seq = icmp_reply->un.echo.sequence == i;
+
+    if (is_echo_reply && is_matching_id && is_matching_seq) {
+      char from_ip[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &(from.sin_addr), from_ip, INET_ADDRSTRLEN);
+      printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n", from_ip, i, ip_header->ttl, rtt);
+    } else {
+      printf("Received an invalid response\n");
+    }
+
+    if (i < 4) {
+      sleep(1);
+    }
   }
 
   close(sockfd);
