@@ -164,10 +164,7 @@ int main(int argc, char **argv) {
     // Get a pointer to the ICMP part of the received packet
     struct icmphdr *icmp_reply = (struct icmphdr *)(recvbuf + ip_header_len);
 
-    // Validate the ICMP reply:
-    // 1. Must be an ECHO REPLY (type 0)
-    // 2. Must have our process ID as the identifier
-    // 3. Must have the same sequence number we sent
+    // Validate the ICMP reply
     bool is_echo_reply = icmp_reply->type == ICMP_ECHOREPLY;
     bool is_matching_id = icmp_reply->un.echo.id == (getpid() & 0xFFFF);
     bool is_matching_seq = icmp_reply->un.echo.sequence == i;
