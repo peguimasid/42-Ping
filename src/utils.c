@@ -6,7 +6,7 @@ void fatal_error(char *errorstr) {
 }
 
 t_context *init_context(void) {
-  t_context *ctx = malloc(sizeof(t_context));
+  ctx = malloc(sizeof(t_context));
   bzero(ctx, sizeof(t_context));
 
   ctx->packet.ip_header = (struct iphdr *)ctx->packet.buffer;

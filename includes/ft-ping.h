@@ -83,5 +83,7 @@ typedef struct s_context {
   bool first_packet;
 } t_context;
 
+extern t_context *ctx;
+
 void fatal_error(char *errorstr);
 t_context *init_context(void);

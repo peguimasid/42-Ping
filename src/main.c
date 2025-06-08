@@ -1,7 +1,8 @@
 #include "../includes/ft-ping.h"
 
-void parse_args(t_context *ctx, int argc, char **argv) {
-  (void)ctx;
+t_context *ctx;
+
+void parse_args(int argc, char **argv) {
   (void)argc;
   (void)argv;
 }
@@ -15,8 +16,8 @@ int main(int argc, char **argv) {
     fatal_error("Usage: ft_ping [-v verbose] [-h help] hostname");
   }
 
-  t_context *ctx = init_context();
-  parse_args(ctx, argc, argv);
+  init_context();
+  parse_args(argc, argv);
   free(ctx);
 
   return EXIT_SUCCESS;
