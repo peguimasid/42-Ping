@@ -3,8 +3,9 @@
 t_context *ctx;
 
 void parse_args(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
+  for (int i = i; i < argc; i++) {
+    printf("arg = %s\n", argv[i]);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -12,7 +13,7 @@ int main(int argc, char **argv) {
     fatal_error("ft_ping: Operation not permitted (you must be root)\n");
   }
 
-  if (argc != 2) {
+  if (argc < 2) {
     fatal_error("Usage: ft_ping [-v verbose] [-h help] hostname");
   }
 

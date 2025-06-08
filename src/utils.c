@@ -10,7 +10,7 @@ t_context *init_context(void) {
   bzero(ctx, sizeof(t_context));
 
   ctx->packet.ip_header = (struct iphdr *)ctx->packet.buffer;
-  ctx->packet.icmp_header = (struct icmphdr *)(ctx->packet.icmp_header + 1);
+  ctx->packet.icmp_header = (struct icmphdr *)(ctx->packet.ip_header + 1);
   ctx->packet.size = PACKET_SIZE;
 
   ctx->process_id = getpid();
