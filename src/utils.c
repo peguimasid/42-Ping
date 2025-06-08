@@ -24,7 +24,6 @@ t_context *init_context(void) {
 
   ctx->ttl_value = 64;
   ctx->ping_count = -1;
-  ctx->ping_interval = 1;
   ctx->infinite_mode = true;
   ctx->verbose_mode = false;
 

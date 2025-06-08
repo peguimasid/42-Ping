@@ -17,8 +17,8 @@
 #define PACKET_SIZE 64
 
 typedef struct s_signals {
-  bool should_stop;
-  bool running;
+  bool should_stop;  // SIGINT
+  bool running;      // SIGALARM
 } t_signals;
 
 typedef struct s_packet {
@@ -69,7 +69,6 @@ typedef struct s_context {
 
   // Program options and configuration
   int ping_count;
-  int ping_interval;
   int ttl_value;
   bool verbose_mode;
   bool infinite_mode;
