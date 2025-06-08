@@ -1,7 +1,12 @@
 #include "../includes/ft-ping.h"
 
-int main(int argc, char **argv) {
+void parse_args(t_context *ctx, int argc, char **argv) {
+  (void)ctx;
+  (void)argc;
   (void)argv;
+}
+
+int main(int argc, char **argv) {
   if (getuid() != 0) {
     fatal_error("ft_ping: Operation not permitted (you must be root)\n");
   }
@@ -11,6 +16,7 @@ int main(int argc, char **argv) {
   }
 
   t_context *ctx = init_context();
+  parse_args(ctx, argc, argv);
   free(ctx);
 
   return EXIT_SUCCESS;
