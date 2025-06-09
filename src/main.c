@@ -13,8 +13,7 @@ int main(int argc, char **argv) {
 
   init();
   parse(argc, argv);
-  signal(SIGINT, handle_signal);
-  signal(SIGALRM, handle_signal);
+  setup_signal_handlers();
 
   free(ctx);
 

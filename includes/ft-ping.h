@@ -87,7 +87,7 @@ extern t_context *ctx;
 
 void init();
 void parse(int argc, char **argv);
+void setup_signal_handlers();
 
 // Utils
 void fatal_error(char *errorstr);
-void handle_signal(int signal);
