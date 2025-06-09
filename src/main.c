@@ -5,6 +5,7 @@ t_context *ctx;
 void handle_arg(char *arg) {
   if (strcmp(arg, "-h") == 0) {
     printf(USAGE);
+    free(ctx);
     return exit(EXIT_SUCCESS);
   }
 
@@ -15,6 +16,7 @@ void handle_arg(char *arg) {
 
   if (arg[0] == '-') {
     fatal_error(USAGE);
+    free(ctx);
     return;
   }
 
