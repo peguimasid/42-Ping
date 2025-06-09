@@ -6,7 +6,7 @@ void handle_arg(char *arg) {
   if (strcmp(arg, "-h") == 0) {
     printf(USAGE);
     free(ctx);
-    return exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
   }
 
   if (strcmp(arg, "-v") == 0) {
@@ -16,16 +16,21 @@ void handle_arg(char *arg) {
 
   if (arg[0] == '-') {
     fatal_error(USAGE);
-    free(ctx);
     return;
   }
 
-  ctx->hostname = arg;
+  ctx->host = arg;
+
+  set_address_by_host(ctx->host);
 }
 
 void parse_args(int argc, char **argv) {
-  for (int i = 0; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     handle_arg(argv[i]);
+  }
+
+  if (!ctx->target_addr) {
+    fatal_error("ft_ping: usage error: Destination address required\n");
   }
 }
 
@@ -40,6 +45,7 @@ int main(int argc, char **argv) {
 
   init_context();
   parse_args(argc, argv);
+  printf("address: %s\n", inet_ntoa(ctx->target_addr->sin_addr));
   free(ctx);
 
   return EXIT_SUCCESS;

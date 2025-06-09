@@ -54,10 +54,9 @@ typedef struct s_stats {
 
 typedef struct s_context {
   // Network configuration
-  char *hostname;
+  char *host;
   char resolved_ip[INET_ADDRSTRLEN];
-  struct sockaddr_in target_addr;
-  struct sockaddr_in source_addr;
+  struct sockaddr_in *target_addr;
   int socket_fd;
 
   // Packet management
@@ -86,5 +85,7 @@ typedef struct s_context {
 
 extern t_context *ctx;
 
-void fatal_error(char *errorstr);
 t_context *init_context(void);
+
+void set_address_by_host(char *host);
+void fatal_error(char *errorstr);

@@ -2,7 +2,28 @@
 
 void fatal_error(char *errorstr) {
   printf(errorstr);
+  if (ctx) free(ctx);
   exit(EXIT_FAILURE);
+}
+
+void set_address_by_host(char *host) {
+  struct addrinfo hints;
+  struct addrinfo *result;
+
+  bzero(&hints, sizeof(hints));
+
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_RAW;
+
+  int status = getaddrinfo(host, NULL, &hints, &result);
+
+  if (status != 0) {
+    printf("ft_ping: %s: Name or service not known\n", host);
+    free(ctx);
+    exit(EXIT_FAILURE);
+  }
+
+  ctx->target_addr = (struct sockaddr_in *)result->ai_addr;
 }
 
 t_context *init_context(void) {
@@ -33,7 +54,7 @@ t_context *init_context(void) {
   ctx->socket_fd = -1;
   ctx->first_packet = true;
   ctx->received_bytes = 0;
-  ctx->hostname = NULL;
+  ctx->host = NULL;
 
   ctx->statistics.packets_sent = 0;
   ctx->statistics.packets_received = 0;
