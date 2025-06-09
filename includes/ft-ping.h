@@ -85,8 +85,9 @@ typedef struct s_context {
 
 extern t_context *ctx;
 
-t_context *init_context(void);
+void init();
+void parse(int argc, char **argv);
 
-void set_address_by_target(char *target);
+// Utils
 void fatal_error(char *errorstr);
-void set_signal_handlers();
+void handle_signal(int signal);
