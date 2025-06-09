@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #define PACKET_SIZE 64
+#define USAGE "Usage: ft_ping [-v verbose] [-h help] hostname\n"
 
 typedef struct s_signals {
   bool should_stop;  // SIGINT

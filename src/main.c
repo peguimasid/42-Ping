@@ -2,9 +2,28 @@
 
 t_context *ctx;
 
+void handle_arg(char *arg) {
+  if (strcmp(arg, "-h") == 0) {
+    printf(USAGE);
+    return exit(EXIT_SUCCESS);
+  }
+
+  if (strcmp(arg, "-v") == 0) {
+    ctx->verbose_mode = true;
+    return;
+  }
+
+  if (arg[0] == '-') {
+    fatal_error(USAGE);
+    return;
+  }
+
+  ctx->hostname = arg;
+}
+
 void parse_args(int argc, char **argv) {
-  for (int i = i; i < argc; i++) {
-    printf("arg = %s\n", argv[i]);
+  for (int i = 0; i < argc; i++) {
+    handle_arg(argv[i]);
   }
 }
 
@@ -14,7 +33,7 @@ int main(int argc, char **argv) {
   }
 
   if (argc < 2) {
-    fatal_error("Usage: ft_ping [-v verbose] [-h help] hostname");
+    fatal_error(USAGE);
   }
 
   init_context();

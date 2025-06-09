@@ -1,7 +1,7 @@
 #include "../includes/ft-ping.h"
 
 void fatal_error(char *errorstr) {
-  printf("%s\n", errorstr);
+  printf(errorstr);
   exit(EXIT_FAILURE);
 }
 
