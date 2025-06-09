@@ -1,7 +1,14 @@
 #include "../includes/ft-ping.h"
 
 void handle_signal(int signal) {
-  (void)signal;
+  if (signal == SIGINT) {
+    ctx->signals.should_stop = true;
+    // TODO: Print statistics
+  }
+
+  if (signal == SIGALRM) {
+    ctx->signals.running = true;
+  }
 }
 
 void set_signal_handlers() {
