@@ -19,9 +19,9 @@ void handle_arg(char *arg) {
     return;
   }
 
-  ctx->host = arg;
+  ctx->target = arg;
 
-  set_address_by_host(ctx->host);
+  set_address_by_target(ctx->target);
 }
 
 void parse_args(int argc, char **argv) {
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
   init_context();
   parse_args(argc, argv);
-  printf("address: %s\n", inet_ntoa(ctx->target_addr->sin_addr));
+  set_signal_handlers();
   free(ctx);
 
   return EXIT_SUCCESS;

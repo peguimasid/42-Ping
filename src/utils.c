@@ -6,7 +6,7 @@ void fatal_error(char *errorstr) {
   exit(EXIT_FAILURE);
 }
 
-void set_address_by_host(char *host) {
+void set_address_by_target(char *target) {
   struct addrinfo hints;
   struct addrinfo *result;
 
@@ -15,15 +15,34 @@ void set_address_by_host(char *host) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_RAW;
 
-  int status = getaddrinfo(host, NULL, &hints, &result);
+  int status = getaddrinfo(target, NULL, &hints, &result);
 
   if (status != 0) {
-    printf("ft_ping: %s: Name or service not known\n", host);
+    printf("ft_ping: %s: Name or service not known\n", target);
     free(ctx);
     exit(EXIT_FAILURE);
   }
 
   ctx->target_addr = (struct sockaddr_in *)result->ai_addr;
+  inet_ntop(AF_INET, &(ctx->target_addr->sin_addr), ctx->target_ip, INET_ADDRSTRLEN);
+
+  freeaddrinfo(result);
+}
+
+void handle_signal(int signal) {
+  if (signal == SIGINT) {
+    ctx->signals.should_stop = true;
+    // TODO: Print statistics
+  }
+
+  if (signal == SIGALRM) {
+    ctx->signals.running = true;
+  }
+}
+
+void set_signal_handlers() {
+  signal(SIGINT, handle_signal);
+  signal(SIGALRM, handle_signal);
 }
 
 t_context *init_context(void) {
@@ -54,7 +73,7 @@ t_context *init_context(void) {
   ctx->socket_fd = -1;
   ctx->first_packet = true;
   ctx->received_bytes = 0;
-  ctx->host = NULL;
+  ctx->target = NULL;
 
   ctx->statistics.packets_sent = 0;
   ctx->statistics.packets_received = 0;
