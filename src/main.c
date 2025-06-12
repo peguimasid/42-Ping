@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
   init();
   parse(argc, argv);
   setup_signal_handlers();
+  ping();
 
   free(ctx);
 

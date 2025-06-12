@@ -88,6 +88,7 @@ extern t_context *ctx;
 void init();
 void parse(int argc, char **argv);
 void setup_signal_handlers();
+void ping();
 
 // Utils
 void fatal_error(char *errorstr);
