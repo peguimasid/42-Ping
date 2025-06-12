@@ -20,3 +20,9 @@ int main(int argc, char **argv) {
 
   return EXIT_SUCCESS;
 }
+
+void fatal_error(char *errorstr) {
+  printf(errorstr);
+  if (ctx) free(ctx);
+  exit(EXIT_FAILURE);
+}
