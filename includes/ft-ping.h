@@ -14,7 +14,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PACKET_SIZE 64
+#define PAYLOAD_SIZE 56
+#define PACKET_SIZE (sizeof(struct iphdr) + sizeof(struct icmphdr) + PAYLOAD_SIZE)
 #define USAGE "Usage: ft_ping [-v verbose] [-h help] hostname\n"
 
 typedef struct s_signals {

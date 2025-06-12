@@ -1,5 +1,5 @@
 #include "../includes/ft-ping.h"
 
 void ping() {
-  printf("ip = %s\n", ctx->target_ip);
+  printf("PING %s (%s) %d(%ld) bytes of data.\n", ctx->target, ctx->target_ip, PAYLOAD_SIZE, PACKET_SIZE);
 }
