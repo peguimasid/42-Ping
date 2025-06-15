@@ -19,8 +19,6 @@ void set_address_by_target(char *target) {
 
   ctx->target_addr = (struct sockaddr_in *)result->ai_addr;
   inet_ntop(AF_INET, &(ctx->target_addr->sin_addr), ctx->target_ip, INET_ADDRSTRLEN);
-
-  freeaddrinfo(result);
 }
 
 void handle_arg(char *arg) {
