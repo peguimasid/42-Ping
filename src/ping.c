@@ -1,5 +1,9 @@
 #include "../includes/ft-ping.h"
 
+void print_ping_header() {
+  printf("PING %s (%s) %d(%d) bytes of data.\n", ctx->target, ctx->target_ip, PAYLOAD_SIZE, PACKET_SIZE);
+}
+
 void create_socket() {
   int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
@@ -17,8 +21,18 @@ void create_socket() {
   ctx->socket_fd = sockfd;
 }
 
+void ping_loop() {
+  while (!ctx->signals.should_stop) {
+    if (ctx->signals.running) {
+      printf("pinging\n");
+      ctx->signals.running = false;
+      alarm(1);
+    }
+  }
+}
+
 void ping() {
   create_socket();
-  printf("PING %s (%s) %d(%d) bytes of data.\n", ctx->target, ctx->target_ip, PAYLOAD_SIZE, PACKET_SIZE);
-  printf("socket_fd: %d\n", ctx->socket_fd);
+  print_ping_header();
+  ping_loop();
 }
