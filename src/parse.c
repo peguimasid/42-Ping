@@ -33,7 +33,7 @@ void handle_arg(char *arg) {
     return;
   }
 
-  if (arg[0] == '-') {
+  if (strcmp(arg, "-") == 0) {
     fatal_error(USAGE);
     return;
   }
